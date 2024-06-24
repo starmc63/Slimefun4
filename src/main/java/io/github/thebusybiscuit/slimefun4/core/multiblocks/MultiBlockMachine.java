@@ -13,6 +13,7 @@ import com.google.common.base.Preconditions;
 
 import org.apache.commons.lang.Validate;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -202,7 +203,9 @@ public abstract class MultiBlockMachine extends SlimefunItem implements NotPlace
 
             // fallback: drop item
             if (rest != null) {
-                SlimefunUtils.spawnItem(block.getLocation(), rest, ItemSpawnReason.MULTIBLOCK_MACHINE_OVERFLOW, true);
+                Bukkit.getRegionScheduler().run(Slimefun.instance(), block.getLocation(), scheduledTask -> {
+                    SlimefunUtils.spawnItem(block.getLocation(), rest, ItemSpawnReason.MULTIBLOCK_MACHINE_OVERFLOW, true);
+                });
             }
         }
     }

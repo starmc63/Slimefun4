@@ -11,10 +11,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.commons.lang.Validate;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -136,15 +133,17 @@ public abstract class AbstractAutoCrafter extends SlimefunItem implements Energy
                 // Select a new recipe
                 updateRecipe(b, p);
             } else {
-                AbstractRecipe recipe = getSelectedRecipe(b);
+                p.getScheduler().run(Slimefun.instance(),scheduledTask ->{
+                    AbstractRecipe recipe = getSelectedRecipe(b);
 
-                if (recipe == null) {
-                    // Prompt the User to crouch
-                    Slimefun.getLocalization().sendMessage(p, "messages.auto-crafting.select-a-recipe");
-                } else {
-                    // Show the current recipe
-                    showRecipe(p, b, recipe);
-                }
+                    if (recipe == null) {
+                        // Prompt the User to crouch
+                        Slimefun.getLocalization().sendMessage(p, "messages.auto-crafting.select-a-recipe");
+                    } else {
+                        // Show the current recipe
+                        showRecipe(p, b, recipe);
+                    }
+                },null);
             }
         } else {
             Slimefun.getLocalization().sendMessage(p, "inventory.no-access");
@@ -160,31 +159,33 @@ public abstract class AbstractAutoCrafter extends SlimefunItem implements Energy
      *            The data stored on this block
      */
     protected void tick(@Nonnull Block b, @Nonnull Config data) {
-        AbstractRecipe recipe = getSelectedRecipe(b);
+        Bukkit.getRegionScheduler().run(Slimefun.instance(),b.getLocation(),task -> {
+            AbstractRecipe recipe = getSelectedRecipe(b);
 
-        if (recipe == null || !recipe.isEnabled() || getCharge(b.getLocation(), data) < getEnergyConsumption()) {
-            // No recipe / disabled recipe / no energy, abort...
-            return;
-        }
+            if (recipe == null || !recipe.isEnabled() || getCharge(b.getLocation(), data) < getEnergyConsumption()) {
+                // No recipe / disabled recipe / no energy, abort...
+                return;
+            }
 
-        // The block below where we would expect our inventory holder.
-        Block targetBlock = b.getRelative(BlockFace.DOWN);
+            // The block below where we would expect our inventory holder.
+            Block targetBlock = b.getRelative(BlockFace.DOWN);
 
-        // Make sure this is a Chest
-        if (isValidInventory(targetBlock)) {
-            BlockState state = PaperLib.getBlockState(targetBlock, false).getState();
+            // Make sure this is a Chest
+            if (isValidInventory(targetBlock)) {
+                BlockState state = PaperLib.getBlockState(targetBlock, false).getState();
 
-            if (state instanceof InventoryHolder inventoryHolder) {
-                Inventory inv = inventoryHolder.getInventory();
+                if (state instanceof InventoryHolder inventoryHolder) {
+                    Inventory inv = inventoryHolder.getInventory();
 
-                if (craft(inv, recipe)) {
-                    // We are done crafting!
-                    Location loc = b.getLocation().add(0.5, 0.8, 0.5);
-                    b.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, loc, 6);
-                    removeCharge(b.getLocation(), getEnergyConsumption());
+                    if (craft(inv, recipe)) {
+                        // We are done crafting!
+                        Location loc = b.getLocation().add(0.5, 0.8, 0.5);
+                        b.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, loc, 6);
+                        removeCharge(b.getLocation(), getEnergyConsumption());
+                    }
                 }
             }
-        }
+        });
     }
 
     /**

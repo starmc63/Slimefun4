@@ -1,8 +1,10 @@
 package io.github.thebusybiscuit.slimefun4.core.services;
 
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import javax.annotation.Nonnull;
@@ -18,6 +20,7 @@ import io.github.thebusybiscuit.slimefun4.core.debug.TestCase;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
+import space.arim.morepaperlib.MorePaperLib;
 
 /**
  * This Service is responsible for automatically saving {@link Player} and {@link Block}
@@ -40,9 +43,9 @@ public class AutoSavingService {
      */
     public void start(@Nonnull Slimefun plugin, int interval) {
         this.interval = interval;
+        Bukkit.getAsyncScheduler().runAtFixedRate(plugin,task->saveAllPlayers(), 100,60L*interval, TimeUnit.SECONDS);
+        Bukkit.getAsyncScheduler().runAtFixedRate(plugin,task->saveAllBlocks(), 100,60L*interval, TimeUnit.SECONDS);
 
-        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, this::saveAllPlayers, 2000L, interval * 60L * 20L);
-        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, this::saveAllBlocks, 2000L, interval * 60L * 20L);
     }
 
     /**

@@ -1,7 +1,9 @@
 package io.github.thebusybiscuit.slimefun4.implementation.tasks;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -19,6 +21,7 @@ import org.bukkit.inventory.RecipeChoice.MaterialChoice;
 import io.github.bakedlibs.dough.collections.LoopIterator;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.implementation.guide.SurvivalSlimefunGuide;
+import space.arim.morepaperlib.MorePaperLib;
 
 /**
  * A {@link AsyncRecipeChoiceTask} is an asynchronously repeating task that cycles
@@ -30,7 +33,7 @@ import io.github.thebusybiscuit.slimefun4.implementation.guide.SurvivalSlimefunG
  * @author TheBusyBiscuit
  *
  */
-public class AsyncRecipeChoiceTask implements Runnable {
+public class AsyncRecipeChoiceTask {
 
     private static final int UPDATE_INTERVAL = 14;
 
@@ -50,7 +53,22 @@ public class AsyncRecipeChoiceTask implements Runnable {
         Validate.notNull(inv, "Inventory must not be null");
 
         inventory = inv;
-        id = Bukkit.getScheduler().runTaskTimerAsynchronously(Slimefun.instance(), this, 0, UPDATE_INTERVAL).getTaskId();
+        Bukkit.getAsyncScheduler().runAtFixedRate(Slimefun.instance(),task -> {
+            // Terminate the task when noone is viewing the Inventory
+            if (inventory.getViewers().isEmpty()) {
+                return;
+            }
+
+            lock.readLock().lock();
+
+            try {
+                for (Map.Entry<Integer, LoopIterator<Material>> entry : iterators.entrySet()) {
+                    inventory.setItem(entry.getKey(), new ItemStack(entry.getValue().next()));
+                }
+            } finally {
+                lock.readLock().unlock();
+            }
+        },0,UPDATE_INTERVAL*50, TimeUnit.MILLISECONDS );
     }
 
     public void add(int slot, @Nonnull MaterialChoice choice) {
@@ -106,23 +124,5 @@ public class AsyncRecipeChoiceTask implements Runnable {
         }
     }
 
-    @Override
-    public void run() {
-        // Terminate the task when noone is viewing the Inventory
-        if (inventory.getViewers().isEmpty()) {
-            Bukkit.getScheduler().cancelTask(id);
-            return;
-        }
-
-        lock.readLock().lock();
-
-        try {
-            for (Map.Entry<Integer, LoopIterator<Material>> entry : iterators.entrySet()) {
-                inventory.setItem(entry.getKey(), new ItemStack(entry.getValue().next()));
-            }
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
 
 }

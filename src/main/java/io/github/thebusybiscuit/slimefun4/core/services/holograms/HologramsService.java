@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -11,6 +12,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -164,7 +166,6 @@ public class HologramsService {
             // Spawn a new ArmorStand
             ArmorStand armorstand = (ArmorStand) loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
             PersistentDataContainer container = armorstand.getPersistentDataContainer();
-
             return getAsHologram(position, armorstand, container);
         } else {
             return hologram;
@@ -265,10 +266,10 @@ public class HologramsService {
             }
         };
 
-        if (Bukkit.isPrimaryThread()) {
+        if (Bukkit.isOwnedByCurrentRegion(loc)) {
             runnable.run();
         } else {
-            Slimefun.runSync(runnable);
+            Bukkit.getRegionScheduler().execute(plugin,loc,runnable);
         }
     }
 
@@ -286,7 +287,7 @@ public class HologramsService {
     public boolean removeHologram(@Nonnull Location loc) {
         Validate.notNull(loc, "Location cannot be null");
 
-        if (Bukkit.isPrimaryThread()) {
+        if (Bukkit.isOwnedByCurrentRegion(loc)) {
             try {
                 Hologram hologram = getHologram(loc, false);
 

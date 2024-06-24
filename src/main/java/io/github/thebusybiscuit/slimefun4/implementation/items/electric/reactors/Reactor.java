@@ -356,10 +356,11 @@ public abstract class Reactor extends AbstractEnergyProvider implements Hologram
              */
             int index = ThreadLocalRandom.current().nextInt(WATER_BLOCKS.length);
             BlockFace randomNeighbour = WATER_BLOCKS[index];
-
-            if (l.getBlock().getRelative(randomNeighbour).getType() != Material.WATER) {
-                explosionsQueue.add(l);
-            }
+            Bukkit.getRegionScheduler().run(Slimefun.instance(),l,scheduledTask -> {
+                if (l.getBlock().getRelative(randomNeighbour).getType() != Material.WATER) {
+                    explosionsQueue.add(l);
+                }
+            });
         });
     }
 

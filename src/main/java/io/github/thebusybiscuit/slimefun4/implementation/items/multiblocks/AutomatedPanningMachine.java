@@ -90,7 +90,7 @@ public class AutomatedPanningMachine extends MultiBlockMachine {
 
         TaskQueue queue = new TaskQueue();
 
-        queue.thenRepeatEvery(20, 5, () -> b.getWorld().playEffect(b.getRelative(BlockFace.DOWN).getLocation(), Effect.STEP_SOUND, material));
+        queue.thenRepeatEvery(20, 5, () -> b.getWorld().playEffect(b.getRelative(BlockFace.DOWN).getLocation(), Effect.STEP_SOUND, material),p.getLocation());
         queue.thenRun(20, () -> {
             if (finalOutput.getType() != Material.AIR) {
                 Optional<Inventory> outputChest = OutputChest.findOutputChestFor(b.getRelative(BlockFace.DOWN), output);
@@ -105,7 +105,7 @@ public class AutomatedPanningMachine extends MultiBlockMachine {
             } else {
                 SoundEffect.AUTOMATED_PANNING_MACHINE_FAIL_SOUND.playAt(b);
             }
-        });
+        },p.getLocation());
 
         queue.execute(Slimefun.instance());
     }

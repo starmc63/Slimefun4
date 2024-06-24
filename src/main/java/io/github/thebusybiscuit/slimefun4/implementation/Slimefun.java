@@ -133,6 +133,8 @@ import io.papermc.lib.PaperLib;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.MenuListener;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import me.mrCookieSlime.Slimefun.api.inventory.UniversalBlockMenu;
+import space.arim.morepaperlib.MorePaperLib;
+import space.arim.morepaperlib.scheduling.ScheduledTask;
 
 /**
  * This is the main class of Slimefun.
@@ -414,8 +416,7 @@ public class Slimefun extends JavaPlugin implements SlimefunAddon {
         }
 
         // Cancel all tasks from this plugin immediately
-        Bukkit.getScheduler().cancelTasks(this);
-
+        Bukkit.getGlobalRegionScheduler().cancelTasks(Slimefun.instance());
         // Finishes all started movements/removals of block data
         try {
             ticker.halt();
@@ -1036,7 +1037,7 @@ public class Slimefun extends JavaPlugin implements SlimefunAddon {
      * 
      * @return The resulting {@link BukkitTask} or null if Slimefun was disabled
      */
-    public static @Nullable BukkitTask runSync(@Nonnull Runnable runnable, long delay) {
+    public static @Nullable ScheduledTask runSync(@Nonnull Runnable runnable, long delay) {
         Validate.notNull(runnable, "Cannot run null");
         Validate.isTrue(delay >= 0, "The delay cannot be negative");
 
@@ -1049,8 +1050,11 @@ public class Slimefun extends JavaPlugin implements SlimefunAddon {
         if (instance == null || !instance.isEnabled()) {
             return null;
         }
+        if (delay <=0){
+            delay =1;
+        }
 
-        return instance.getServer().getScheduler().runTaskLater(instance, runnable, delay);
+        return new MorePaperLib(instance()).scheduling().globalRegionalScheduler().runDelayed(runnable,delay);
     }
 
     /**
@@ -1065,7 +1069,7 @@ public class Slimefun extends JavaPlugin implements SlimefunAddon {
      * 
      * @return The resulting {@link BukkitTask} or null if Slimefun was disabled
      */
-    public static @Nullable BukkitTask runSync(@Nonnull Runnable runnable) {
+    public static @Nullable ScheduledTask runSync(@Nonnull Runnable runnable) {
         Validate.notNull(runnable, "Cannot run null");
 
         // Run the task instantly within a Unit Test
@@ -1078,7 +1082,7 @@ public class Slimefun extends JavaPlugin implements SlimefunAddon {
             return null;
         }
 
-        return instance.getServer().getScheduler().runTask(instance, runnable);
+        return new MorePaperLib(instance).scheduling().globalRegionalScheduler().runDelayed(runnable,1);
     }
 
     public static @Nonnull Storage getPlayerStorage() {

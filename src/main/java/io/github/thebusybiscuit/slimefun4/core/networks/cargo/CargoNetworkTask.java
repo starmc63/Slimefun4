@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.Inventory;
@@ -93,23 +94,25 @@ class CargoNetworkTask implements Runnable {
 
     @ParametersAreNonnullByDefault
     private void routeItems(Location inputNode, Block inputTarget, int frequency, Map<Integer, List<Location>> outputNodes) {
-        ItemStackAndInteger slot = CargoUtils.withdraw(network, inventories, inputNode.getBlock(), inputTarget);
+        Bukkit.getRegionScheduler().run(Slimefun.instance(),inputTarget.getLocation(), task->{
+            ItemStackAndInteger slot = CargoUtils.withdraw(network, inventories, inputNode.getBlock(), inputTarget);
 
-        if (slot == null) {
-            return;
-        }
+            if (slot == null) {
+                return;
+            }
 
-        ItemStack stack = slot.getItem();
-        int previousSlot = slot.getInt();
-        List<Location> destinations = outputNodes.get(frequency);
+            ItemStack stack = slot.getItem();
+            int previousSlot = slot.getInt();
+            List<Location> destinations = outputNodes.get(frequency);
 
-        if (destinations != null) {
-            stack = distributeItem(stack, inputNode, destinations);
-        }
+            if (destinations != null) {
+                stack = distributeItem(stack, inputNode, destinations);
+            }
 
-        if (stack != null) {
-            insertItem(inputTarget, previousSlot, stack);
-        }
+            if (stack != null) {
+                insertItem(inputTarget, previousSlot, stack);
+            }
+        });
     }
 
     @ParametersAreNonnullByDefault
@@ -126,7 +129,7 @@ class CargoNetworkTask implements Runnable {
 
                 if (rest != null && !manager.isItemDeletionEnabled()) {
                     // If the item still couldn't be inserted, simply drop it on the ground
-                    SlimefunUtils.spawnItem(inputTarget.getLocation().add(0, 1, 0), rest, ItemSpawnReason.CARGO_OVERFLOW);
+                    Bukkit.getRegionScheduler().run(Slimefun.instance(),inputTarget.getLocation(),scheduledTask ->SlimefunUtils.spawnItem(inputTarget.getLocation().add(0, 1, 0), rest, ItemSpawnReason.CARGO_OVERFLOW));
                 }
             }
         } else {
@@ -136,7 +139,7 @@ class CargoNetworkTask implements Runnable {
                 if (menu.getItemInSlot(previousSlot) == null) {
                     menu.replaceExistingItem(previousSlot, item);
                 } else if (!manager.isItemDeletionEnabled()) {
-                    SlimefunUtils.spawnItem(inputTarget.getLocation().add(0, 1, 0), item, ItemSpawnReason.CARGO_OVERFLOW);
+                    Bukkit.getRegionScheduler().run(Slimefun.instance(),inputTarget.getLocation(),scheduledTask ->SlimefunUtils.spawnItem(inputTarget.getLocation().add(0, 1, 0), item, ItemSpawnReason.CARGO_OVERFLOW));
                 }
             }
         }
@@ -145,6 +148,7 @@ class CargoNetworkTask implements Runnable {
     @Nullable
     @ParametersAreNonnullByDefault
     private ItemStack distributeItem(ItemStack stack, Location inputNode, List<Location> outputNodes) {
+
         ItemStack item = stack;
 
         Config cfg = BlockStorage.getLocationInfo(inputNode);

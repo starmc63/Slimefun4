@@ -4,6 +4,7 @@ import java.util.function.Predicate;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ArmorStand;
@@ -53,8 +54,7 @@ public class ButcherAndroid extends ProgrammableAndroid {
                 }
 
                 n.setMetadata(METADATA_KEY, new FixedMetadataValue(Slimefun.instance(), new AndroidInstance(this, b)));
-
-                ((LivingEntity) n).damage(damage);
+                n.getScheduler().run(Slimefun.instance(),scheduledTask -> {((LivingEntity) n).damage(damage);},null);
                 break;
             }
         }

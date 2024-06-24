@@ -34,6 +34,7 @@ import io.papermc.lib.PaperLib;
 
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineFuel;
 
+
 /**
  * This represents a running instance of an {@link IndustrialMiner}.
  * 
@@ -126,11 +127,11 @@ class MiningTask implements Runnable {
          */
         TaskQueue queue = new TaskQueue();
 
-        queue.thenRun(4, () -> setPistonState(pistons[0], true));
-        queue.thenRun(10, () -> setPistonState(pistons[0], false));
+        queue.thenRun(4, () -> setPistonState(pistons[0], true),start.toLocation());
+        queue.thenRun(10, () -> setPistonState(pistons[0], false),start.toLocation());
 
-        queue.thenRun(8, () -> setPistonState(pistons[1], true));
-        queue.thenRun(10, () -> setPistonState(pistons[1], false));
+        queue.thenRun(8, () -> setPistonState(pistons[1], true),start.toLocation());
+        queue.thenRun(10, () -> setPistonState(pistons[1], false),start.toLocation());
 
         /*
          * Fixes #3336
@@ -145,27 +146,27 @@ class MiningTask implements Runnable {
                 stop(MinerStoppingReason.NO_FUEL);
                 return;
             }
-        });
+        },start.toLocation());
 
-        queue.thenRun(6, () -> setPistonState(pistons[0], true));
-        queue.thenRun(9, () -> setPistonState(pistons[0], false));
+        queue.thenRun(6, () -> setPistonState(pistons[0], true),start.toLocation());
+        queue.thenRun(9, () -> setPistonState(pistons[0], false),start.toLocation());
 
-        queue.thenRun(4, () -> setPistonState(pistons[1], true));
-        queue.thenRun(7, () -> setPistonState(pistons[1], false));
+        queue.thenRun(4, () -> setPistonState(pistons[1], true),start.toLocation());
+        queue.thenRun(7, () -> setPistonState(pistons[1], false),start.toLocation());
 
-        queue.thenRun(3, () -> setPistonState(pistons[0], true));
-        queue.thenRun(5, () -> setPistonState(pistons[0], false));
+        queue.thenRun(3, () -> setPistonState(pistons[0], true),start.toLocation());
+        queue.thenRun(5, () -> setPistonState(pistons[0], false),start.toLocation());
 
-        queue.thenRun(2, () -> setPistonState(pistons[1], true));
-        queue.thenRun(4, () -> setPistonState(pistons[1], false));
+        queue.thenRun(2, () -> setPistonState(pistons[1], true),start.toLocation());
+        queue.thenRun(4, () -> setPistonState(pistons[1], false),start.toLocation());
 
-        queue.thenRun(1, () -> setPistonState(pistons[0], true));
-        queue.thenRun(3, () -> setPistonState(pistons[0], false));
+        queue.thenRun(1, () -> setPistonState(pistons[0], true),start.toLocation());
+        queue.thenRun(3, () -> setPistonState(pistons[0], false),start.toLocation());
 
-        queue.thenRun(1, () -> setPistonState(pistons[1], true));
-        queue.thenRun(2, () -> setPistonState(pistons[1], false));
+        queue.thenRun(1, () -> setPistonState(pistons[1], true),start.toLocation());
+        queue.thenRun(2, () -> setPistonState(pistons[1], false),start.toLocation());
 
-        queue.thenRun(1, this);
+        queue.thenRun(1, this,start.toLocation());
         queue.execute(Slimefun.instance());
     }
 
@@ -178,11 +179,11 @@ class MiningTask implements Runnable {
 
         TaskQueue queue = new TaskQueue();
 
-        queue.thenRun(1, () -> setPistonState(pistons[0], true));
-        queue.thenRun(3, () -> setPistonState(pistons[0], false));
+        queue.thenRun(1, () -> setPistonState(pistons[0], true),start.toLocation());
+        queue.thenRun(3, () -> setPistonState(pistons[0], false),start.toLocation());
 
-        queue.thenRun(1, () -> setPistonState(pistons[1], true));
-        queue.thenRun(3, () -> setPistonState(pistons[1], false));
+        queue.thenRun(1, () -> setPistonState(pistons[1], true),start.toLocation());
+        queue.thenRun(3, () -> setPistonState(pistons[1], false),start.toLocation());
 
         queue.thenRun(() -> {
             try {
@@ -219,7 +220,7 @@ class MiningTask implements Runnable {
                 Slimefun.logger().log(Level.SEVERE, e, () -> "An Error occurred while running an Industrial Miner at " + new BlockPosition(chest));
                 stop();
             }
-        });
+        },start.toLocation());
 
         queue.execute(Slimefun.instance());
     }

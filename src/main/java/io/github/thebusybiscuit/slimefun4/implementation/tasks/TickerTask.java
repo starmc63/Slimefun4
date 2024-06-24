@@ -19,6 +19,7 @@ import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import io.github.bakedlibs.dough.blocks.BlockPosition;
@@ -30,6 +31,7 @@ import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.Slimefun.Objects.handlers.BlockTicker;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
+import space.arim.morepaperlib.MorePaperLib;
 
 /**
  * The {@link TickerTask} is responsible for ticking every {@link BlockTicker},
@@ -206,7 +208,9 @@ public class TickerTask implements Runnable {
             bugs.remove(position);
 
             BlockStorage.deleteLocationInfoUnsafely(l, true);
-            Bukkit.getScheduler().scheduleSyncDelayedTask(Slimefun.instance(), () -> l.getBlock().setType(Material.AIR));
+            if (Slimefun.instance() != null) {
+                Bukkit.getRegionScheduler().run(Slimefun.instance(),l.getBlock().getLocation(),task->l.getBlock().setType(Material.AIR));
+            }
         } else {
             bugs.put(position, errors);
         }

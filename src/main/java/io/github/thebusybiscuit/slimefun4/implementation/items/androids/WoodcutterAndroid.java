@@ -82,7 +82,7 @@ public class WoodcutterAndroid extends ProgrammableAndroid {
         if (log.getY() == android.getRelative(face).getY()) {
             replant(log);
         } else {
-            log.setType(Material.AIR);
+            Bukkit.getRegionScheduler().run(Slimefun.instance(),log.getLocation(),scheduledTask -> log.setType(Material.AIR));
         }
     }
 
@@ -176,11 +176,15 @@ public class WoodcutterAndroid extends ProgrammableAndroid {
         if (saplingType != null && soilRequirement != null) {
             if (soilRequirement.test(block.getRelative(BlockFace.DOWN).getType())) {
                 // Replant the block
-                block.setType(saplingType);
+                Material finalSaplingType = saplingType;
+                Bukkit.getRegionScheduler().run(Slimefun.instance(), block.getLocation(), scheduledTask -> block.setType(finalSaplingType));
             } else {
                 // Simply drop the sapling if the soil does not fit
-                block.getWorld().dropItemNaturally(block.getLocation(), new ItemStack(saplingType));
-                block.setType(Material.AIR);
+                Material finalSaplingType1 = saplingType;
+                Bukkit.getRegionScheduler().run(Slimefun.instance(), block.getLocation(), scheduledTask -> {
+                    block.getWorld().dropItemNaturally(block.getLocation(), new ItemStack(finalSaplingType1));
+                    block.setType(Material.AIR);
+                });
             }
         }
     }

@@ -39,15 +39,18 @@ public class ItemPickupListener implements Listener {
 
     @EventHandler
     public void onHopperPickup(InventoryPickupItemEvent e) {
-        if (SlimefunUtils.hasNoPickupFlag(e.getItem())) {
-            e.setCancelled(true);
-        } else if (e.getItem().getItemStack().hasItemMeta()) {
-            ItemMeta meta = e.getItem().getItemStack().getItemMeta();
-
-            if (meta.hasDisplayName() && meta.getDisplayName().startsWith(AncientPedestal.ITEM_PREFIX)) {
-                e.setCancelled(true);
-                e.getItem().remove();
-            }
+        if (Slimefun.instance() != null) {
+            e.getItem().getScheduler().run(Slimefun.instance(),scheduledTask -> {
+                if (SlimefunUtils.hasNoPickupFlag(e.getItem())) {
+                    e.setCancelled(true);
+                } else if (e.getItem().getItemStack().hasItemMeta()) {
+                    ItemMeta meta = e.getItem().getItemStack().getItemMeta();
+                    if (meta.hasDisplayName() && meta.getDisplayName().startsWith(AncientPedestal.ITEM_PREFIX)) {
+                        e.setCancelled(true);
+                        e.getItem().remove();
+                    }
+                }
+            },null);
         }
     }
 }

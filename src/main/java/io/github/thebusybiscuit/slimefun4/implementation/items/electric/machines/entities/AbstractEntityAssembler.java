@@ -5,6 +5,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -209,9 +210,10 @@ public abstract class AbstractEntityAssembler<T extends Entity> extends SimpleSl
 
                         Slimefun.runSync(() -> {
                             Location loc = new Location(b.getWorld(), b.getX() + 0.5D, b.getY() + offset, b.getZ() + 0.5D);
-                            spawnEntity(loc);
-
-                            b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, getHead().getType());
+                            Bukkit.getRegionScheduler().run(Slimefun.instance(),loc,scheduledTask -> {
+                                spawnEntity(loc);
+                                b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, getHead().getType());
+                            });
                         });
                     }
                 }

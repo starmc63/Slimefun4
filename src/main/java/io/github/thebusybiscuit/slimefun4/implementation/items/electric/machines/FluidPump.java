@@ -7,6 +7,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -137,63 +139,75 @@ public class FluidPump extends SimpleSlimefunItem<BlockTicker> implements Invent
 
     protected void tick(@Nonnull Block b) {
         Block fluid = b.getRelative(BlockFace.DOWN);
+        Bukkit.getRegionScheduler().run(Slimefun.instance(),fluid.getLocation(),scheduledTask -> {
+            if (fluid.isLiquid() && getCharge(b.getLocation()) >= ENERGY_CONSUMPTION) {
+                BlockMenu menu = BlockStorage.getInventory(b);
 
-        if (fluid.isLiquid() && getCharge(b.getLocation()) >= ENERGY_CONSUMPTION) {
-            BlockMenu menu = BlockStorage.getInventory(b);
+                for (int slot : getInputSlots()) {
+                    ItemStack itemInSlot = menu.getItemInSlot(slot);
 
-            for (int slot : getInputSlots()) {
-                ItemStack itemInSlot = menu.getItemInSlot(slot);
+                    try {
+                        if (SlimefunUtils.isItemSimilar(itemInSlot, emptyBucket, true, false)) {
+                            ItemStack bucket = getFilledBucket(fluid);
 
-                if (SlimefunUtils.isItemSimilar(itemInSlot, emptyBucket, true, false)) {
-                    ItemStack bucket = getFilledBucket(fluid);
+                            if (!menu.fits(bucket, getOutputSlots())) {
+                                return;
+                            }
 
-                    if (!menu.fits(bucket, getOutputSlots())) {
-                        return;
-                    }
+                            Block nextFluid = findNextFluid(fluid);
 
-                    Block nextFluid = findNextFluid(fluid);
+                            if (nextFluid != null) {
+                                removeCharge(b.getLocation(), ENERGY_CONSUMPTION);
+                                menu.consumeItem(slot);
+                                menu.pushItem(bucket, getOutputSlots());
+                                if (Slimefun.instance() != null) {
+                                    Bukkit.getRegionScheduler().run(Slimefun.instance(),nextFluid.getLocation(),task->nextFluid.setType(Material.AIR));
+                                }
+                            } else {
+                                // 增加日志记录
+                                System.out.println("No next fluid found for block: " + fluid);
+                            }
 
-                    if (nextFluid != null) {
-                        removeCharge(b.getLocation(), ENERGY_CONSUMPTION);
-                        menu.consumeItem(slot);
-                        menu.pushItem(bucket, getOutputSlots());
-                        nextFluid.setType(Material.AIR);
-                    }
+                            return;
+                        } else if (SlimefunUtils.isItemSimilar(itemInSlot, emptyBottle, true, false)) {
+                            ItemStack bottle = getFilledBottle(fluid);
 
-                    return;
-                } else if (SlimefunUtils.isItemSimilar(itemInSlot, emptyBottle, true, false)) {
-                    ItemStack bottle = getFilledBottle(fluid);
+                            if (!menu.fits(bottle, getOutputSlots())) {
+                                return;
+                            }
 
-                    if (!menu.fits(bottle, getOutputSlots())) {
-                        return;
-                    }
+                            Block nextFluid = findNextFluid(fluid);
 
-                    Block nextFluid = findNextFluid(fluid);
+                            if (nextFluid != null) {
+                                removeCharge(b.getLocation(), ENERGY_CONSUMPTION);
+                                menu.consumeItem(slot);
+                                menu.pushItem(bottle, getOutputSlots());
 
-                    if (nextFluid != null) {
-                        removeCharge(b.getLocation(), ENERGY_CONSUMPTION);
-                        menu.consumeItem(slot);
-                        menu.pushItem(bottle, getOutputSlots());
+                                if (ThreadLocalRandom.current().nextInt(100) < 30) {
+                                    if (Slimefun.instance() != null) {
+                                        Bukkit.getRegionScheduler().run(Slimefun.instance(),nextFluid.getLocation(),task->nextFluid.setType(Material.AIR));
+                                    }
+                                }
+                            } else {
+                                // 增加日志记录
+                                System.out.println("No next fluid found for block: " + fluid);
+                            }
 
-                        if (ThreadLocalRandom.current().nextInt(100) < 30) {
-                            nextFluid.setType(Material.AIR);
+                            return;
                         }
+                    } catch (Exception e) {
+                        // 捕获所有异常并记录
+                        e.printStackTrace();
+                        System.out.println("Error processing block: " + b + ", slot: " + slot + ", item: " + itemInSlot);
                     }
-
-                    return;
                 }
             }
-        }
+        });
     }
 
     @Nullable
     private Block findNextFluid(@Nonnull Block fluid) {
         if (fluid.getType() == Material.WATER || fluid.getType() == Material.BUBBLE_COLUMN) {
-            /**
-             * With water we can be sure to find an infinite source whenever we
-             * go further than a block, so we can just remove the water here and
-             * save ourselves all of that computing...
-             */
             if (isSource(fluid)) {
                 return fluid;
             }
@@ -211,6 +225,7 @@ public class FluidPump extends SimpleSlimefunItem<BlockTicker> implements Invent
 
         return null;
     }
+
 
     private @Nonnull ItemStack getFilledBottle(@Nonnull Block fluid) {
         switch (fluid.getType()) {

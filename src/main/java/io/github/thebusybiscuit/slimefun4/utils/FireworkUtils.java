@@ -5,15 +5,14 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import javax.annotation.Nonnull;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.FireworkEffect;
+import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
+import org.bukkit.*;
 import org.bukkit.FireworkEffect.Type;
-import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.inventory.meta.FireworkMeta;
+import space.arim.morepaperlib.MorePaperLib;
 
 /**
  * This is a simple utility class for spawning random and colorful {@link Firework} rockets.
@@ -35,7 +34,11 @@ public final class FireworkUtils {
     private FireworkUtils() {}
 
     public static void launchFirework(@Nonnull Location l, @Nonnull Color color) {
-        createFirework(l, color);
+        if (Slimefun.instance() != null) {
+            Bukkit.getRegionScheduler().run(Slimefun.instance(),l,scheduledTask -> {
+                createFirework(l,color);
+            });
+        }
     }
 
     public static @Nonnull Firework createFirework(@Nonnull Location l, @Nonnull Color color) {
@@ -53,9 +56,8 @@ public final class FireworkUtils {
 
     public static void launchRandom(@Nonnull Entity n, int amount) {
         Random random = ThreadLocalRandom.current();
-
         for (int i = 0; i < amount; i++) {
-            Location l = n.getLocation().clone();
+            Location l = n.getLocation();
             l.setX(l.getX() + random.nextInt(amount * 2) - amount);
             l.setZ(l.getZ() + random.nextInt(amount * 2) - amount);
 

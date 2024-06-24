@@ -58,7 +58,7 @@ public class SlimefunAutoCrafter extends AbstractAutoCrafter {
     public AbstractRecipe getSelectedRecipe(@Nonnull Block b) {
         Validate.notNull(b, "The Block cannot be null!");
 
-        BlockState state = PaperLib.getBlockState(b, false).getState();
+        BlockState state = b.getState();
 
         if (state instanceof Skull skull) {
             // Read the stored value from persistent data storage

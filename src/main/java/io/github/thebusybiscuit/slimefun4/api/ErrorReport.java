@@ -86,33 +86,35 @@ public class ErrorReport<T extends Throwable> {
     @ParametersAreNonnullByDefault
     public ErrorReport(T throwable, Location l, SlimefunItem item) {
         this(throwable, item.getAddon(), stream -> {
-            stream.println("Block Info:");
-            stream.println("  World: " + l.getWorld().getName());
-            stream.println("  X: " + l.getBlockX());
-            stream.println("  Y: " + l.getBlockY());
-            stream.println("  Z: " + l.getBlockZ());
-            stream.println("  Material: " + l.getBlock().getType());
-            stream.println("  Block Data: " + l.getBlock().getBlockData().getClass().getName());
-            stream.println("  State: " + l.getBlock().getState().getClass().getName());
-            stream.println();
-
-            if (item.getBlockTicker() != null) {
-                stream.println("Ticker-Info:");
-                stream.println("  Type: " + (item.getBlockTicker().isSynchronized() ? "Synchronized" : "Asynchronous"));
+            Bukkit.getRegionScheduler().run(Slimefun.instance(),l,scheduledTask -> {
+                stream.println("Block Info:");
+                stream.println("  World: " + l.getWorld().getName());
+                stream.println("  X: " + l.getBlockX());
+                stream.println("  Y: " + l.getBlockY());
+                stream.println("  Z: " + l.getBlockZ());
+                stream.println("  Material: " + l.getBlock().getType());
+                stream.println("  Block Data: " + l.getBlock().getBlockData().getClass().getName());
+                stream.println("  State: " + l.getBlock().getState().getClass().getName());
                 stream.println();
-            }
 
-            if (item instanceof EnergyNetProvider) {
-                stream.println("Ticker-Info:");
-                stream.println("  Type: Indirect (Energy Network)");
+                if (item.getBlockTicker() != null) {
+                    stream.println("Ticker-Info:");
+                    stream.println("  Type: " + (item.getBlockTicker().isSynchronized() ? "Synchronized" : "Asynchronous"));
+                    stream.println();
+                }
+
+                if (item instanceof EnergyNetProvider) {
+                    stream.println("Ticker-Info:");
+                    stream.println("  Type: Indirect (Energy Network)");
+                    stream.println();
+                }
+
+                stream.println("Slimefun Data:");
+                stream.println("  ID: " + item.getId());
+                stream.println("  Inventory: " + BlockStorage.getStorage(l.getWorld()).hasInventory(l));
+                stream.println("  Data: " + BlockStorage.getBlockInfoAsJson(l));
                 stream.println();
-            }
-
-            stream.println("Slimefun Data:");
-            stream.println("  ID: " + item.getId());
-            stream.println("  Inventory: " + BlockStorage.getStorage(l.getWorld()).hasInventory(l));
-            stream.println("  Data: " + BlockStorage.getBlockInfoAsJson(l));
-            stream.println();
+            });
         });
     }
 

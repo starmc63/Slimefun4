@@ -158,29 +158,32 @@ public class AncientAltarTask implements Runnable {
         SoundEffect.ANCIENT_ALTAR_ITEM_DROP_SOUND.playAt(dropLocation, SoundCategory.BLOCKS);
         positionLock.clear();
         listener.getAltars().remove(altar);
-    }
+}
 
     private void finish() {
-        if (running) {
+        if (Slimefun.instance() != null) {
+            Bukkit.getRegionScheduler().run(Slimefun.instance(),dropLocation,task->{
+            if (running) {
+                AncientAltarCraftEvent event = new AncientAltarCraftEvent(output, altar, player);
+                Bukkit.getPluginManager().callEvent(event);
 
-            AncientAltarCraftEvent event = new AncientAltarCraftEvent(output, altar, player);
-            Bukkit.getPluginManager().callEvent(event);
+                if (!event.isCancelled()) {
+                    SoundEffect.ANCIENT_ALTAR_FINISH_SOUND.playAt(dropLocation, SoundCategory.BLOCKS);
+                    dropLocation.getWorld().playEffect(dropLocation, Effect.STEP_SOUND, Material.EMERALD_BLOCK);
+                    dropLocation.getWorld().dropItemNaturally(dropLocation.add(0, -0.5, 0), event.getItem());
+                }
 
-            if (!event.isCancelled()) {
-                SoundEffect.ANCIENT_ALTAR_FINISH_SOUND.playAt(dropLocation, SoundCategory.BLOCKS);
-                dropLocation.getWorld().playEffect(dropLocation, Effect.STEP_SOUND, Material.EMERALD_BLOCK);
-                dropLocation.getWorld().dropItemNaturally(dropLocation.add(0, -0.5, 0), event.getItem());
+                for (Block b : pedestals) {
+                    listener.getAltarsInUse().remove(b.getLocation());
+                }
+
+                // This should re-enable altar blocks on craft completion.
+                listener.getAltarsInUse().remove(altar.getLocation());
+                listener.getAltars().remove(altar);
+            } else {
+                SoundEffect.ANCIENT_ALTAR_ITEM_DROP_SOUND.playAt(dropLocation, SoundCategory.BLOCKS);
             }
-
-            for (Block b : pedestals) {
-                listener.getAltarsInUse().remove(b.getLocation());
-            }
-
-            // This should re-enable altar blocks on craft completion.
-            listener.getAltarsInUse().remove(altar.getLocation());
-            listener.getAltars().remove(altar);
-        } else {
-            SoundEffect.ANCIENT_ALTAR_ITEM_DROP_SOUND.playAt(dropLocation, SoundCategory.BLOCKS);
+            });
         }
     }
 }

@@ -5,6 +5,8 @@ import java.util.Iterator;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -126,22 +128,22 @@ public class ExpCollector extends SlimefunItem implements InventoryBlock, Energy
 
     protected void tick(Block block) {
         Location location = block.getLocation();
-        Iterator<Entity> iterator = block.getWorld().getNearbyEntities(location, 4.0, 4.0, 4.0, n -> n instanceof ExperienceOrb && n.isValid()).iterator();
-        int experiencePoints = 0;
+        Bukkit.getRegionScheduler().run(Slimefun.instance(),location,task -> {        Iterator<Entity> iterator = block.getWorld().getNearbyEntities(location, 4.0, 4.0, 4.0, n -> n instanceof ExperienceOrb && n.isValid()).iterator();
+            int experiencePoints = 0;
 
-        while (iterator.hasNext() && experiencePoints == 0) {
-            ExperienceOrb orb = (ExperienceOrb) iterator.next();
+            while (iterator.hasNext() && experiencePoints == 0) {
+                ExperienceOrb orb = (ExperienceOrb) iterator.next();
 
-            if (getCharge(location) < ENERGY_CONSUMPTION) {
-                return;
-            }
+                if (getCharge(location) < ENERGY_CONSUMPTION) {
+                    return;
+                }
 
-            experiencePoints = getStoredExperience(location) + orb.getExperience();
+                experiencePoints = getStoredExperience(location) + orb.getExperience();
 
-            removeCharge(location, ENERGY_CONSUMPTION);
-            orb.remove();
-            produceFlasks(location, experiencePoints);
-        }
+                removeCharge(location, ENERGY_CONSUMPTION);
+                orb.remove();
+                produceFlasks(location, experiencePoints);
+            }});
     }
 
     /**

@@ -27,7 +27,7 @@ public class AsyncMachineOperationFinishEvent extends Event {
     private final MachineOperation machineOperation;
 
     public <T extends MachineOperation> AsyncMachineOperationFinishEvent(BlockPosition pos, MachineProcessor<T> processor, T operation) {
-        super(!Bukkit.isPrimaryThread());
+        super(!Bukkit.isOwnedByCurrentRegion(pos.toLocation()));
 
         this.position = pos;
         this.machineProcessor = processor;

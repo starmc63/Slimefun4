@@ -11,10 +11,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.commons.lang.Validate;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Tag;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -674,41 +671,41 @@ public class ProgrammableAndroid extends SlimefunItem implements InventoryBlock,
     }
 
     protected void tick(Block b, Config data) {
-        if (b.getType() != Material.PLAYER_HEAD) {
+        Bukkit.getRegionScheduler().run(Slimefun.instance(),b.getLocation(),scheduledTask -> {if (b.getType() != Material.PLAYER_HEAD) {
             // The Android was destroyed or moved.
             return;
         }
 
-        if ("false".equals(data.getString("paused"))) {
-            BlockMenu menu = BlockStorage.getInventory(b);
+            if ("false".equals(data.getString("paused"))) {
+                BlockMenu menu = BlockStorage.getInventory(b);
 
-            String fuelData = data.getString("fuel");
-            float fuel = fuelData == null ? 0 : Float.parseFloat(fuelData);
+                String fuelData = data.getString("fuel");
+                float fuel = fuelData == null ? 0 : Float.parseFloat(fuelData);
 
-            if (fuel < 0.001) {
-                consumeFuel(b, menu);
-            } else {
-                String code = data.getString("script");
-                String[] script = CommonPatterns.DASH.split(code == null ? DEFAULT_SCRIPT : code);
+                if (fuel < 0.001) {
+                    consumeFuel(b, menu);
+                } else {
+                    String code = data.getString("script");
+                    String[] script = CommonPatterns.DASH.split(code == null ? DEFAULT_SCRIPT : code);
 
-                String indexData = data.getString("index");
-                int index = (indexData == null ? 0 : Integer.parseInt(indexData)) + 1;
+                    String indexData = data.getString("index");
+                    int index = (indexData == null ? 0 : Integer.parseInt(indexData)) + 1;
 
-                if (index >= script.length) {
-                    index = 0;
+                    if (index >= script.length) {
+                        index = 0;
+                    }
+
+                    BlockStorage.addBlockInfo(b, "fuel", String.valueOf(fuel - 1));
+                    Instruction instruction = Instruction.getInstruction(script[index]);
+
+                    if (instruction == null) {
+                        Slimefun.instance().getLogger().log(Level.WARNING, "Failed to parse Android instruction: {0}, maybe your server is out of date?", script[index]);
+                        return;
+                    }
+
+                    executeInstruction(instruction, b, menu, data, index);
                 }
-
-                BlockStorage.addBlockInfo(b, "fuel", String.valueOf(fuel - 1));
-                Instruction instruction = Instruction.getInstruction(script[index]);
-
-                if (instruction == null) {
-                    Slimefun.instance().getLogger().log(Level.WARNING, "Failed to parse Android instruction: {0}, maybe your server is out of date?", script[index]);
-                    return;
-                }
-
-                executeInstruction(instruction, b, menu, data, index);
-            }
-        }
+            }});
     }
 
     @ParametersAreNonnullByDefault
@@ -759,7 +756,7 @@ public class ProgrammableAndroid extends SlimefunItem implements InventoryBlock,
             }
         });
 
-        b.setBlockData(blockData);
+        Bukkit.getRegionScheduler().run(Slimefun.instance(),b.getLocation(), scheduledTask -> b.setBlockData(blockData));
         BlockStorage.addBlockInfo(b, "rotation", rotation.name());
     }
 

@@ -24,6 +24,7 @@ import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.enchanting.AutoDisenchanter;
 
 import dev.lone.itemsadder.api.ItemsAdder;
+import space.arim.morepaperlib.MorePaperLib;
 
 /**
  * This Service holds all interactions and hooks with third-party {@link Plugin Plugins}
@@ -95,7 +96,7 @@ public class IntegrationsManager {
         onServerLoad();
 
         // Load any integrations which aren't dependencies (loadBefore)
-        plugin.getServer().getScheduler().runTask(plugin, this::onServerStart);
+        Bukkit.getGlobalRegionScheduler().runDelayed(plugin,task->onServerStart(),1);
     }
 
     /**

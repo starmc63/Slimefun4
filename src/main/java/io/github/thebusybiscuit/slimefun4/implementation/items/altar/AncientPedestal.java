@@ -6,6 +6,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -166,19 +167,19 @@ public class AncientPedestal extends SimpleSlimefunItem<BlockDispenseHandler> im
         if (p.getGameMode() != GameMode.CREATIVE) {
             ItemUtils.consumeItem(hand, false);
         }
-
-        Item entity = SlimefunUtils.spawnItem(b.getLocation().add(0.5, 1.2, 0.5), displayItem, ItemSpawnReason.ANCIENT_PEDESTAL_PLACE_ITEM, false, p);
-
-        if (entity != null) {
-            ArmorStand armorStand = getArmorStand(b, true);
-            entity.setInvulnerable(true);
-            entity.setVelocity(new Vector(0, 0.1, 0));
-            entity.setCustomNameVisible(true);
-            entity.setCustomName(nametag);
-            armorStand.setCustomName(displayName);
-            armorStand.addPassenger(entity);
-            SlimefunUtils.markAsNoPickup(entity, "altar_item");
-            SoundEffect.ANCIENT_PEDESTAL_ITEM_PLACE_SOUND.playAt(b);
-        }
+        Bukkit.getRegionScheduler().run(Slimefun.instance(),b.getLocation(),scheduledTask -> {
+            Item entity = SlimefunUtils.spawnItem(b.getLocation().add(0.5, 1.2, 0.5), displayItem, ItemSpawnReason.ANCIENT_PEDESTAL_PLACE_ITEM, false, p);
+            if (entity != null) {
+                ArmorStand armorStand = getArmorStand(b, true);
+                entity.setInvulnerable(true);
+                entity.setVelocity(new Vector(0, 0.1, 0));
+                entity.setCustomNameVisible(true);
+                entity.setCustomName(nametag);
+                armorStand.setCustomName(displayName);
+                armorStand.addPassenger(entity);
+                SlimefunUtils.markAsNoPickup(entity, "altar_item");
+                SoundEffect.ANCIENT_PEDESTAL_ITEM_PLACE_SOUND.playAt(b);
+            }
+        });
     }
 }

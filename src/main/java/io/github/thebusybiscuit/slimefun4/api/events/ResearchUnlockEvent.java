@@ -28,7 +28,7 @@ public class ResearchUnlockEvent extends Event implements Cancellable {
     private boolean cancelled;
 
     public ResearchUnlockEvent(@Nonnull Player p, @Nonnull Research research) {
-        super(!Bukkit.isPrimaryThread());
+        super(!Bukkit.isOwnedByCurrentRegion(p.getLocation()));
 
         Validate.notNull(p, "The Player cannot be null");
         Validate.notNull(research, "Research cannot be null");

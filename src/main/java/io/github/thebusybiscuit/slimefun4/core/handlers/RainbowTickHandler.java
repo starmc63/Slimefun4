@@ -6,6 +6,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.lang.Validate;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -91,34 +92,36 @@ public class RainbowTickHandler extends BlockTicker {
 
     @Override
     public void tick(Block b, SlimefunItem item, Config data) {
-        if (b.getType().isAir()) {
+        Bukkit.getRegionScheduler().run(Slimefun.instance(),b.getLocation(),task -> {
+            if (b.getType().isAir()) {
             /*
               The block was broken, setting the Material now would result in a
               duplication glitch
              */
-            return;
-        }
-
-        if (glassPanes) {
-            BlockData blockData = b.getBlockData();
-
-            if (blockData instanceof GlassPane previousData) {
-                BlockData block = material.createBlockData(bd -> {
-                    if (bd instanceof GlassPane nextData) {
-                        nextData.setWaterlogged(previousData.isWaterlogged());
-
-                        for (BlockFace face : previousData.getAllowedFaces()) {
-                            nextData.setFace(face, previousData.hasFace(face));
-                        }
-                    }
-                });
-
-                b.setBlockData(block, false);
                 return;
             }
-        }
 
-        b.setType(material, false);
+            if (glassPanes) {
+                BlockData blockData = b.getBlockData();
+
+                if (blockData instanceof GlassPane previousData) {
+                    BlockData block = material.createBlockData(bd -> {
+                        if (bd instanceof GlassPane nextData) {
+                            nextData.setWaterlogged(previousData.isWaterlogged());
+
+                            for (BlockFace face : previousData.getAllowedFaces()) {
+                                nextData.setFace(face, previousData.hasFace(face));
+                            }
+                        }
+                    });
+
+                    b.setBlockData(block, false);
+                    return;
+                }
+            }
+
+            b.setType(material, false);
+        });
     }
 
     @Override
